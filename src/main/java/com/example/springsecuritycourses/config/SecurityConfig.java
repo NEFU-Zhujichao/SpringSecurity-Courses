@@ -1,8 +1,10 @@
 package com.example.springsecuritycourses.config;
 
+import com.example.springsecuritycourses.handler.MyAuthenticationFailureHandler;
 import com.example.springsecuritycourses.handler.MyAuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -32,11 +34,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // 登录成功后的处理器，不能和successForwardUrl共存
                 .successHandler(new MyAuthenticationSuccessHandler("http://www.baidu.com"))
                 // 登录失败后跳转页面必须是post请求
-                .failureForwardUrl("/toError");
+                //.failureForwardUrl("/toError")
+                // 登录失败后的处理器，不能和failureForwardUrl共存
+                .failureHandler(new MyAuthenticationFailureHandler("/error.html"));
         // 授权认证
         http.authorizeRequests()
                 // 放行login.html、error.html
                 .antMatchers("/login.html","/error.html").permitAll()
+                // 放行静态资源的两种方式
+                //.antMatchers("/js/**","/css/**","/image/**").permitAll()
+                //.antMatchers("/**/*.png").permitAll()
+                //.regexMatchers(".+[.]png").permitAll()
+                //.regexMatchers(HttpMethod.POST,".+[.]png").permitAll()
+                // 等效于.antMatchers("/xxxx/demo").permitAll()
+                //.mvcMatchers("/demo").servletPath("/xxxx").permitAll()
                 // 任何请求都需要被认证，必须登录之后访问
                 .anyRequest().authenticated();
         // 关闭csrf防护
