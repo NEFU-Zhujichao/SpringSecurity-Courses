@@ -42,7 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // 放行login.html、error.html
                 .antMatchers("/login.html","/error.html").permitAll()
                 // 放行静态资源的两种方式
-                //.antMatchers("/js/**","/css/**","/image/**").permitAll()
+                .antMatchers("/js/**","/css/**","/image/**").permitAll()
                 //.antMatchers("/**/*.png").permitAll()
                 //.regexMatchers(".+[.]png").permitAll()
                 //.regexMatchers(HttpMethod.POST,".+[.]png").permitAll()
