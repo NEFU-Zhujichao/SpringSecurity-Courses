@@ -1,6 +1,7 @@
 package com.example.springsecuritycourses.handler;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import javax.servlet.ServletException;
@@ -18,6 +19,11 @@ public class MyAuthenticationSuccessHandler implements AuthenticationSuccessHand
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException, ServletException {
+//        User user = (User) authentication.getPrincipal();
+//        System.out.println(user.getUsername());
+        // 处于安全考虑，密码会打印为null
+//        System.out.println(user.getPassword());
+//        System.out.println(user.getAuthorities());
         httpServletResponse.sendRedirect(url);
     }
 }
