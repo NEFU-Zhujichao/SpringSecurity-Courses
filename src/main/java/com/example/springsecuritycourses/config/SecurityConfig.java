@@ -1,7 +1,9 @@
 package com.example.springsecuritycourses.config;
 
+import com.example.springsecuritycourses.handler.MyAccessDeniedHandler;
 import com.example.springsecuritycourses.handler.MyAuthenticationFailureHandler;
 import com.example.springsecuritycourses.handler.MyAuthenticationSuccessHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,6 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private MyAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public PasswordEncoder getPasswordEncoder(){
@@ -32,11 +37,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // 登录成功后跳转页面必须是post请求
                 //.successForwardUrl("/toMain")
                 // 登录成功后的处理器，不能和successForwardUrl共存
-                .successHandler(new MyAuthenticationSuccessHandler("http://www.baidu.com"))
+                .successHandler(new MyAuthenticationSuccessHandler("/main.html"))
                 // 登录失败后跳转页面必须是post请求
-                //.failureForwardUrl("/toError")
+                .failureForwardUrl("/toError");
                 // 登录失败后的处理器，不能和failureForwardUrl共存
-                .failureHandler(new MyAuthenticationFailureHandler("/error.html"));
+                //.failureHandler(new MyAuthenticationFailureHandler("/error.html"));
         // 授权认证
         http.authorizeRequests()
                 // 放行login.html、error.html
@@ -48,9 +53,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 //.regexMatchers(HttpMethod.POST,".+[.]png").permitAll()
                 // 等效于.antMatchers("/xxxx/demo").permitAll()
                 //.mvcMatchers("/demo").servletPath("/xxxx").permitAll()
+                //.antMatchers("/main1.html").hasAuthority("Admin")
+                //.antMatchers("/main1.html").hasAnyAuthority("Admin","admin")
+                //.antMatchers("/main1.html").hasRole("abC")
+                //.antMatchers("/main1.html").hasAnyRole("abC","abc")
+                .antMatchers("/main1.html").hasIpAddress("127.0.0.1")
                 // 任何请求都需要被认证，必须登录之后访问
                 .anyRequest().authenticated();
         // 关闭csrf防护
         http.csrf().disable();
+
+        // 异常处理
+        http.exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler);
     }
 }

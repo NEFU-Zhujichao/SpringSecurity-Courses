@@ -24,4 +24,14 @@ public interface UserDetailsService {
 
 Tip：实际项目中经常用来放行所有静态资源：.antMatchers("/js/**","/css/**").permitAll() 或者是 .antMatchers("/**/*.png").permitAll()
 - regexMatchers：参数是正则表达式
-- mvcMatchers：
+- mvcMatchers：servletPath
+---
+**权限控制**
+- hasAuthority("Admin") 拥有Admin权限才能访问
+- hasAnyAuthority("Admin","admin") 拥有任意一个权限就能访问
+- hasRole("abC") 拥有abc角色才能访问
+- hasAnyRole("abc","Abc") 拥有任意一个角色就能访问
+- hasIpAddress("127.0.0.1") 此IP才能访问
+---
+**自定义异常处理**
+- 自定义定制403页面：实现AccessDeniedHandler 重写方法。在配置类里配置这个自定义处理组件 http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
