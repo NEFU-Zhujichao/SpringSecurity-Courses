@@ -35,3 +35,20 @@ Tip：实际项目中经常用来放行所有静态资源：.antMatchers("/js/**
 ---
 **自定义异常处理**
 - 自定义定制403页面：实现AccessDeniedHandler 重写方法。在配置类里配置这个自定义处理组件 http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+### 2021/5/7
+**access表达式**
+- access("permitAll()") access("hasRole('abc')")等等都可以用access表达式替换，因为底层就是用的access表达式。
+- 基于access实现自定义的权限验证方式。
+> **注解方式使用SpringSecurity**
+1. 在启动类上开启注解 @EnableGlobalMethodSecurity(securedEnabled = true)
+2. 在Controller类或者方法上使用@Secured("ROLE_abc") 严格区分大小写，必须以ROLE_开头。
+
+执行方法前判断权限：@PreAuthorize("hasAnyRole('ROLE_abc,Abc')") 括号里是access表达式。  
+执行方法后判断权限：@PostAuthorize("hasAnyRole('ROLE_abc,Abc')") 括号里是access表达式。
+1. @EnableGlobalMethodSecurity(securedEnabled = true,prePostEnabled = true)
+2. 在Controller类或者方法上使用@PreAuthorize("hasAnyRole('ROLE_abc,Abc')") 严格区分大小写，表达式里可以是ROLE_开头，也可以不用ROLE_开头。
+
+**RememberMe功能实现**  
+**注销功能实现**  
+- <a href="/user/logout">注销</a> .logoutUrl("/user/logout") 自定义退出的路径
+- .logoutSuccessUrl("/login.html"); 退出登录跳转页面

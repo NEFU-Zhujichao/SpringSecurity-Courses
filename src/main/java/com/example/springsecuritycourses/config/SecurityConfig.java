@@ -3,6 +3,7 @@ package com.example.springsecuritycourses.config;
 import com.example.springsecuritycourses.handler.MyAccessDeniedHandler;
 import com.example.springsecuritycourses.handler.MyAuthenticationFailureHandler;
 import com.example.springsecuritycourses.handler.MyAuthenticationSuccessHandler;
+import com.example.springsecuritycourses.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,12 +12,22 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
+import javax.sql.DataSource;
 
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private MyAccessDeniedHandler accessDeniedHandler;
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
+    @Autowired
+    private DataSource dataSource;
+    @Autowired
+    private PersistentTokenRepository persistentTokenRepository;
 
     @Bean
     public PasswordEncoder getPasswordEncoder(){
@@ -35,9 +46,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // 自定义登录页面
                 .loginPage("/login.html")
                 // 登录成功后跳转页面必须是post请求
-                //.successForwardUrl("/toMain")
+                .successForwardUrl("/toMain")
                 // 登录成功后的处理器，不能和successForwardUrl共存
-                .successHandler(new MyAuthenticationSuccessHandler("/main.html"))
+                //.successHandler(new MyAuthenticationSuccessHandler("/main.html"))
                 // 登录失败后跳转页面必须是post请求
                 .failureForwardUrl("/toError");
                 // 登录失败后的处理器，不能和failureForwardUrl共存
@@ -57,14 +68,41 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 //.antMatchers("/main1.html").hasAnyAuthority("Admin","admin")
                 //.antMatchers("/main1.html").hasRole("abC")
                 //.antMatchers("/main1.html").hasAnyRole("abC","abc")
-                .antMatchers("/main1.html").hasIpAddress("127.0.0.1")
+                //.antMatchers("/main1.html").hasIpAddress("127.0.0.1")
                 // 任何请求都需要被认证，必须登录之后访问
-                .anyRequest().authenticated();
+                //.anyRequest().authenticated();
+                .anyRequest().access("@myServiceImpl.hasPermission(request,authentication)");
         // 关闭csrf防护
         http.csrf().disable();
 
         // 异常处理
         http.exceptionHandling()
                 .accessDeniedHandler(accessDeniedHandler);
+
+        // 记住我
+        http.rememberMe()
+                .tokenValiditySeconds(30)
+                // 更改表单名称
+                //.rememberMeParameter()
+                // 自定义登录逻辑
+                .userDetailsService(userDetailsService)
+                // 持久层对象
+                .tokenRepository(persistentTokenRepository);
+
+        // 注销
+        http.logout()
+                // <a href="/user/logout">注销</a>
+                //.logoutUrl("/user/logout")
+                // 成功退出登录跳转页面否则url上会带?logout参数
+                .logoutSuccessUrl("/login.html");
+    }
+
+    @Bean
+    public PersistentTokenRepository getPersistentTokenRepository(){
+        JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
+        jdbcTokenRepository.setDataSource(dataSource);
+        // 第一次启动自动创建表，第二次启动时需要注释掉否则会产生异常
+        //jdbcTokenRepository.setCreateTableOnStartup(true);
+        return jdbcTokenRepository;
     }
 }
